@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>L&C Personal Finances</title>
+    <!-- Page Script and CSS-->
+    <script src="../static/js/jquery-1.11.2.js"></script>
+    <link rel="stylesheet" href="../static/css/bootstrap.min.css">
+    <link rel="stylesheet" href="../static/css/jumbotron.css">
+
+</head>
+
+
+<body>
+  <div class="container">
+      <div class="header">
+          <h3 class="text-muted">L&C Personal Finances</h3>
+      </div>
+
+  	<li role="presentation"><a href="/showAddTrans">Add Transaction</a></li>
+  </ul>
+
+  <table border="1" cellpadding="5" cellspacing="5">
+    <thead>
+      <th>Date</th>
+      <th>Description</th>
+      <th>Amount</th>
+      <th>Whose Expense</th>
+      <th>Adjusted Amount</th>
+    </thead>
+    <tbody>
+      {% for row in data %}
+        <tr>
+          <td>{{ row[5] }}</td>
+          <td>{{ row[2]}}</td>
+          <td>{{ row[3] }}</td>
+          <td><select name="inputCode">
+            <option  value=" "> </option>
+            <option value="shared_lp">Shared - Lee Paid</option>
+            <option value="shared_cp">Shared - Chris Paid</option>
+            <option value="l_ex_cp">Lee's expense - Chris Paid</option>
+            <option value="c_ex_lp">Chris' expense - Lee Paid</option>
+            <option value="l_reimb">Lee paid Chris back</option>
+            <option value="cust">Custom</option>
+            </select>
+          </td>
+          <td>{{ row[4] }}</td>
+          <td><button onclick="editTrans({{ row[0] }})"Edit</button></td>
+          <td><button onclick="deleteTrans({{ row[0] }})"Delete</button></td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</body>
+</html>
