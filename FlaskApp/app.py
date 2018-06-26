@@ -14,30 +14,30 @@ app.config['MYSQL_DATABASE_HOST'] = 'localhost'
 mysql.init_app(app)
 
 
+
 #home page
 @app.route('/')
 def main():
+    return render_template('index.html', data = getData())
+
+
+
+#route to get the transactions in the server
+@app.route('/getData',methods=['POST'])
+def getData():
     #connect to the mysql server
     conn = mysql.connect()
     cursor = conn.cursor()
-    query = "SELECT * from transactions"
+    query = "SELECT *, DATE_FORMAT( transDate, '%m/%d/%Y') FROM transactions ORDER BY transDate ASC"
     cursor.execute(query)
     transactions = cursor.fetchall()
 
-    for trans in transactions:
-        
-
-    return render_template('index.html', data=transactions)
+    return transactions
 
     #clean up
     cursor.close()
     conn.close()
 
-
-#form to enter a transaction
-@app.route('/showAddTrans')
-def showAddTrans():
-    return render_template('addTrans.html')
 
 
 #route to add a transaction via MySQL
@@ -48,34 +48,48 @@ def addTrans():
     _description = request.form['inputDesc']
     _amount = request.form['inputAmt']
     _code = request.form['inputCode']
+    _adjAmt = request.form['inputAdjAmt']
+
 
     #format date to work with MySQL
-    format_str = '%m/%d/%Y'
-    datetime_obj = datetime.datetime.strptime(_date, format_str)
-    _date = datetime_obj.date()
+    if _date is None:
+        return render_template('error.html', error = 'An error occurred!')
+    else:
+        format_str = '%m/%d/%Y'
+        datetime_obj = datetime.datetime.strptime(_date, format_str)
+        _date = datetime_obj.date()
 
     #if no code selected, enter it as NULL into MySQL
+    #if there is a code selected, then adjAmt must be null so MySQL will calculate it
     if _code == " ":
         _code = None
+    else:
+        _adjAmt = None
+
 
     #connect to the mysql server
     conn = mysql.connect()
     cursor = conn.cursor()
-
+    query = "INSERT INTO transactions (transDate, description, amt, transCode, adjAmt) VALUES(%s, %s, %s, %s, %s)"
     #insert the user input into the database
-    cursor.callproc('sp_addTrans',(_date, _description, _amount, _code))
+    cursor.execute(query, (_date, _description, _amount, _code, _adjAmt))
 
     #check that all is well and redirect to home if so
     data = cursor.fetchall()
     if len(data) is 0:
         conn.commit()
-        return redirect('/')
+        return main()
     else:
         return render_template('error.html', error = 'An error occurred!')
 
     #clean up
     cursor.close()
     conn.close()
+
+
+
+
+
 
 
 

@@ -8,19 +8,41 @@
     <link rel="stylesheet" href="../static/css/bootstrap.min.css">
     <link rel="stylesheet" href="../static/css/jumbotron.css">
 
+
+    <!-- Calendar Script and CSS-->
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <link rel="stylesheet" href="/resources/demos/style.css">
+    <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <script>
+      $( function() {
+        $( "#datepicker" ).datepicker();
+      } );
+    </script>
+
+    <!-- AJAX Script to show updated transaction data-->
+    <script>
+    $(function(){
+      $.ajax({
+        url: '/getData',
+        type: 'GET',
+        success: function(res){
+          var data = res;
+        },
+        error: function(error){
+        }
+      });
+    });
+    </script>
 </head>
 
 
-<body>
-  <div class="container">
-      <div class="header">
-          <h3 class="text-muted">L&C Personal Finances</h3>
-      </div>
 
-  	<li role="presentation"><a href="/showAddTrans">Add Transaction</a></li>
-  </ul>
+<body>
+  <h3 class="text-muted">L&C Personal Finances</h3>
 
   <table border="1" cellpadding="5" cellspacing="5">
+    <!--Table Headings-->
     <thead>
       <th>Date</th>
       <th>Description</th>
@@ -28,25 +50,45 @@
       <th>Whose Expense</th>
       <th>Adjusted Amount</th>
     </thead>
+
+    <!--Form to input new transaction-->
     <tbody>
+      <form class="form-horizontal" method="post" action="/addTrans">
+        <tr>
+          <td><input id="datepicker" name="inputDate" type="text" placeholder="Date"></td>
+          <td><textarea id="inputDesc" name="inputDesc" type="text" placeholder="Description"></textarea></td>
+          <td><input id="inputAmt" name="inputAmt" type="number" step="0.01" placeholder="Amount"></td>
+          <td><select name="inputCode">
+                <option value=" "> </option>
+                <option value="-.5">Shared - Lee Paid</option>
+                <option value=".5">Shared - Chris Paid</option>
+                <option value="1">Lee's expense - Chris Paid</option>
+                <option value="-1">Chris' expense - Lee Paid</option>
+                <option value="-1">Lee paid Chris back</option>
+                <option value=" ">Custom</option>
+                </select>
+            </td>
+            <td><input id="inputAdjAmt" name="inputAdjAmt" type="number" step="0.01" placeholder="Adjusted Amount"></td>
+            <td><input id="singlebutton" name="singlebutton" class="btn btn-primary" type="submit" value="Enter" />
+          </tr>
+        </form>
+
+      <!--Code to show transactions in database-->
       {% for row in data %}
         <tr>
-          <td>{{ row[5] }}</td>
-          <td>{{ row[2]}}</td>
+          <!--Date-->
+          <td>{{ row[7] }}</td>
+          <!--Description-->
+          <td>{{ row[2] }}</td>
+          <!--Amount-->
           <td>{{ row[3] }}</td>
-          <td><select name="inputCode">
-            <option  value=" "> </option>
-            <option value="shared_lp">Shared - Lee Paid</option>
-            <option value="shared_cp">Shared - Chris Paid</option>
-            <option value="l_ex_cp">Lee's expense - Chris Paid</option>
-            <option value="c_ex_lp">Chris' expense - Lee Paid</option>
-            <option value="l_reimb">Lee paid Chris back</option>
-            <option value="cust">Custom</option>
-            </select>
-          </td>
+          <!--Drop-Down for Code-->
+          <td><select name ="code" id="transactionCode" onchange="editTransCode()">
+              
+              {{ row[8] }}
+          <!--Adjusted Amt-->
           <td>{{ row[4] }}</td>
           <td><button onclick="editTrans({{ row[0] }})"Edit</button></td>
-          <td><button onclick="deleteTrans({{ row[0] }})"Delete</button></td>
         </tr>
       {% endfor %}
     </tbody>
